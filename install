@@ -1,0 +1,35 @@
+#!/bin/bash
+
+set -e
+
+cd "$(dirname $0)" && root_directory="$(pwd)"
+
+which docker > /dev/null 2>&1 || (
+    echo "[!] docker is not installed." &&
+    echo "please install either docker CE (https://docs.docker.com/engine/install/) or docker desktop (https://docs.docker.com/desktop/)" && 
+    exit 1
+)
+
+echo "[+] installing necessary files for this user in ~/.emerson"
+mkdir -p ~/.emerson/scripts
+
+if [ ! -e "$HOME/.emerson/.env" ]; then
+    echo -n "Enter your license key: "
+    read license_key
+    echo "license_key=$license_key" > "$HOME/.emerson/.env"
+fi
+
+cp "$root_directory/scripts/wait-for-it.sh" "$HOME/.emerson/scripts/wait-for-it.sh"
+cp "$root_directory/scripts/load_sketch.py" "$HOME/.emerson/scripts/load_sketch.py"
+cp "$root_directory/scripts/reload_sketch.py" "$HOME/.emerson/scripts/reload_sketch.py"
+
+echo "[+] loading the docker images"
+docker image load -i "$root_directory/emerson-lantern.tar"
+docker image load -i "$root_directory/emerson-python.tar"
+
+echo "[+] installing the arduino plugin"
+rm -rf "${HOME}/.arduinoIDE/plugins/emerson"
+mkdir -p "${HOME}/.arduinoIDE/plugins"
+unzip -d "${HOME}/.arduinoIDE/plugins/" "$root_directory/emerson-arduino.zip"
+
+echo "[+] emerson is successfully installed"
