@@ -10,7 +10,7 @@ This is a set of project files for running the Community Edition of Emerson.
  ```
 
 ## Install the necessary files
-Navigate into `/lantern` and run the install script! It will prompt you for your license key.
+Navigate into `/Emerson-CE/Emerson-CE` and run the install script! It will prompt you for your license key.
 ```
 ./install
 ```
@@ -18,7 +18,7 @@ Navigate into `/lantern` and run the install script! It will prompt you for your
 This will install some scripts, the license key, and our Arduino IDE plugin.
 
 ## Load a sketch into Emerson
-In the ArduinoIDE, first, compile and export your sketch. From the file menu, select `Sketch` and then, `Export Compiled Binary`.
+In the ArduinoIDE, first, compile and export your sketch. From the file menu, select `Sketch` and then, `Export Compiled Binary`  (`Ctrl-Alt-S`).
 
 Then, bring up the command pallette (`Ctrl-Shift-P`) and select `Emerson: Load Sketch`. This will start the emerson server and start a session runninng your application.
 
