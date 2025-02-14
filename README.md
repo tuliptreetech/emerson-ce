@@ -3,10 +3,10 @@ This is a set of project files for running the Community Edition of Emerson.
 > This repo should be used as a reference and discussion platform. A cloned repo will not run on its own without the complete source code and license found on our website.
 
 ## Get your license
- Go to our [website](https://tuliptreetech.com) and click the `Download` button in the top right corner. Fill out the form and an email will give you the complete source code and key to install the Emerson docker image. After you install `lantern.tar` you can extract it using the command below
+ Go to our [website](https://tuliptreetech.com) and click the `Download` button in the top right corner. Fill out the form and an email will give you the complete source code and key to install the Emerson docker image. After you install `Emerson-CE.tar` you can extract it using the command below
 
  ```
- tar xvf lantern.tar
+ tar xvf Emerson-CE.tar
  ```
 
 ## Install the necessary files
