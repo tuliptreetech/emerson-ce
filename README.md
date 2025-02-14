@@ -10,7 +10,7 @@ This is a set of project files for running the Community Edition of Emerson.
  ```
 
 ## Install the necessary files
-Navigate into `/Emerson-CE/Emerson-CE` and run the install script! It will prompt you for your license key.
+Navigate into `/Emerson-CE` and run the install script! It will prompt you for your license key.
 ```
 ./install
 ```
