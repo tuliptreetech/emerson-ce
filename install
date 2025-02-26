@@ -42,9 +42,9 @@ if [ "$1" == "cli" ]; then
 
     [ ! -d "$arduino_cli_directory" ] && mkdir -p "$arduino_cli_directory"
     if [ ! -e "$arduino_cli" ]; then
-        pushd "$arduino_cli_directory" 
+        pushd "$arduino_cli_directory" > /dev/null
         curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh -s 
-        popd
+        popd > /dev/null
     fi
 
     set +e
@@ -55,7 +55,16 @@ if [ "$1" == "cli" ]; then
     $arduino_cli core install arduino:avr
 
     cp "$root_directory/emerson-cli" "$HOME/.emerson/bin/emerson-cli"
+    cp "$root_directory/docker-compose.yaml" "$HOME/.emerson/docker-compose.yaml"
 
-    sudo cp "$root_directory/emerson-cli" /usr/local/bin/emerson-cli
+    set +e
+    grep "/.emerson/bin" ~/.bashrc > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "[+] adding ~/.emerson/bin to PATH"
+        echo "export PATH=\$PATH:$HOME/.emerson/bin" >> "$HOME/.bashrc"
+        echo "[+] PATH has been modified, restart your shell to see the changes"
+    fi
+    set -e
+
     echo "[+] emerson-cli is successfully installed"
 fi
