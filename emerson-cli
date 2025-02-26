@@ -1,0 +1,91 @@
+#!/bin/bash
+
+start_directory="$(pwd)"
+root_directory="$HOME/.emerson"
+
+arduino_cli="$HOME/.emerson/bin/arduino-cli"
+logfile="$HOME/.emerson/logs/$(date +%Y-%m-%d_%H-%M-%S).log"
+[ ! -d "$HOME/.emerson/logs" ] && mkdir -p "$HOME/.emerson/logs"
+
+sketch_directory="$2"
+[ -f "$sketch_directory" ] && sketch_directory="$(dirname $sketch_directory)"
+[ ! -z "$sketch_directory" ] && sketch_directory=$(realpath "$sketch_directory")
+
+start_franklin() {
+    sketch_name=$(basename "$sketch_directory")
+    sketch_location="$sketch_directory/build/arduino.avr.uno/$sketch_name.ino.with_bootloader.bin"
+    echo "[+] starting server with $sketch_location"
+    docker \
+      run \
+      --privileged \
+      --env-file "$HOME/.emerson/.env" \
+      --rm \
+      --name ttt_emerson \
+      -p 10314:10314 \
+      -p 9001:9001 \
+      --platform linux/amd64 \
+      -v "$sketch_location:/opt/tuliptree/emerson/projects/arduino-uno-r3/flash.bin" \
+      ghcr.io/tuliptreetech/emerson/lantern:latest >> $logfile 2>&1 &
+}
+
+compile() {
+    echo "[+] compiling the sketch $sketch_directory"
+    output=$("$arduino_cli" compile -b arduino:avr:uno -e -v "$sketch_directory")
+    exit_code=$?
+    if [ $exit_code -ne 0 ]; then
+        echo "[!] compilation failed" 
+        echo $output
+        exit $exit_code
+    fi
+}
+
+load_sketch() {
+    echo "[+] loading sketch $sketch_directory"
+    docker run \
+      --platform linux/amd64 \
+      --rm \
+      -v "$HOME/.emerson/scripts:/scripts" \
+      --network host \
+      ghcr.io/tuliptreetech/emerson/emerson-python:latest \
+      /scripts/wait-for-it.sh -t 60 -q -s localhost:10314 \
+      -- python /scripts/load_sketch.py
+}
+
+reload_sketch() {
+    echo "[+] reloading sketch"
+    docker run \
+      --platform linux/amd64 \
+      --rm \
+      -v "$HOME/.emerson/scripts:/scripts" \
+      --network host \
+      ghcr.io/tuliptreetech/emerson/emerson-python:latest \
+      /scripts/wait-for-it.sh -t 60 -q -s localhost:10314 \
+      -- python /scripts/reload_sketch.py
+}
+
+stop() {
+    docker ps | grep ttt_emerson > /dev/null
+    if [ $? -eq 0 ]; then
+        echo "[+] stopping server"
+        docker stop ttt_emerson
+    fi
+}
+
+case "$1" in
+    "load")
+        compile
+        stop
+        start_franklin
+        sleep 3
+        load_sketch
+    ;;
+    "reload")
+        compile
+        reload_sketch
+    ;;
+    "stop")
+        stop
+    ;;
+esac
+        
+

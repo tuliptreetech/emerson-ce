@@ -33,3 +33,29 @@ mkdir -p "${HOME}/.arduinoIDE/plugins"
 unzip -d "${HOME}/.arduinoIDE/plugins/" "$root_directory/emerson-arduino.zip"
 
 echo "[+] emerson is successfully installed"
+
+if [ "$1" == "cli" ]; then
+    echo "[+] installing the arduino cli"
+
+    arduino_cli="$HOME/.emerson/bin/arduino-cli"
+    arduino_cli_directory="$HOME/.emerson"
+
+    [ ! -d "$arduino_cli_directory" ] && mkdir -p "$arduino_cli_directory"
+    if [ ! -e "$arduino_cli" ]; then
+        pushd "$arduino_cli_directory" 
+        curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh -s 
+        popd
+    fi
+
+    set +e
+    $arduino_cli config init
+    set -e
+
+    $arduino_cli core update-index
+    $arduino_cli core install arduino:avr
+
+    cp "$root_directory/emerson-cli" "$HOME/.emerson/bin/emerson-cli"
+
+    sudo cp "$root_directory/emerson-cli" /usr/local/bin/emerson-cli
+    echo "[+] emerson-cli is successfully installed"
+fi
