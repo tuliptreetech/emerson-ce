@@ -1,0 +1,15 @@
+services:
+  load:
+    image: ghcr.io/tuliptreetech/emerson/emerson-python:latest
+    platform: linux/amd64
+    network_mode: host
+    volumes:
+      - ./scripts:/scripts
+    command: /scripts/wait-for-it.sh -t 60 -q -s localhost:10314 -- python /scripts/load_sketch.py
+  reload:
+    image: ghcr.io/tuliptreetech/emerson/emerson-python:latest
+    platform: linux/amd64
+    network_mode: host
+    volumes:
+      - ./scripts:/scripts
+    command: /scripts/wait-for-it.sh -t 60 -q -s localhost:10314 -- python /scripts/reload_sketch.py

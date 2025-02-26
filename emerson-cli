@@ -7,9 +7,18 @@ arduino_cli="$HOME/.emerson/bin/arduino-cli"
 logfile="$HOME/.emerson/logs/$(date +%Y-%m-%d_%H-%M-%S).log"
 [ ! -d "$HOME/.emerson/logs" ] && mkdir -p "$HOME/.emerson/logs"
 
+usage() {
+    echo "[!] usage: $0 <load <sketch_directory>|reload <sketch_directory>|stop>"
+}
+
 sketch_directory="$2"
-[ -f "$sketch_directory" ] && sketch_directory="$(dirname $sketch_directory)"
-[ ! -z "$sketch_directory" ] && sketch_directory=$(realpath "$sketch_directory")
+set_sketch_directory() {
+    [ -z "$sketch_directory" ] && echo "[!] missing sketch" && usage && exit 1
+    [ ! -e "$sketch_directory" ] && sketch_directory="$HOME/Documents/Arduino/$sketch_directory"
+    [ -f "$sketch_directory" ] && sketch_directory="$(dirname $sketch_directory)"
+    [ ! -z "$sketch_directory" ] && sketch_directory=$(realpath "$sketch_directory")
+    [ ! -e "$sketch_directory" ] && echo "[!] could not find sketch in $start_directory or $HOME/Documents/Arduino/" && usage && exit 1
+}
 
 start_franklin() {
     sketch_name=$(basename "$sketch_directory")
@@ -41,26 +50,16 @@ compile() {
 
 load_sketch() {
     echo "[+] loading sketch $sketch_directory"
-    docker run \
-      --platform linux/amd64 \
-      --rm \
-      -v "$HOME/.emerson/scripts:/scripts" \
-      --network host \
-      ghcr.io/tuliptreetech/emerson/emerson-python:latest \
-      /scripts/wait-for-it.sh -t 60 -q -s localhost:10314 \
-      -- python /scripts/load_sketch.py
+    pushd "$root_directory" > /dev/null
+    docker compose run --rm load
+    popd > /dev/null
 }
 
 reload_sketch() {
     echo "[+] reloading sketch"
-    docker run \
-      --platform linux/amd64 \
-      --rm \
-      -v "$HOME/.emerson/scripts:/scripts" \
-      --network host \
-      ghcr.io/tuliptreetech/emerson/emerson-python:latest \
-      /scripts/wait-for-it.sh -t 60 -q -s localhost:10314 \
-      -- python /scripts/reload_sketch.py
+    pushd "$root_directory" > /dev/null
+    docker compose run --rm reload
+    popd > /dev/null
 }
 
 stop() {
@@ -73,19 +72,23 @@ stop() {
 
 case "$1" in
     "load")
+        set_sketch_directory
         compile
         stop
         start_franklin
         sleep 3
         load_sketch
-    ;;
+        ;;
     "reload")
+        set_sketch_directory
         compile
         reload_sketch
-    ;;
+        ;;
     "stop")
         stop
-    ;;
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
 esac
-        
-
